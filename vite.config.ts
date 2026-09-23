@@ -6,9 +6,8 @@ export default defineConfig({
   server: {
     port: 5176,
     proxy: {
-      // Everything the browser needs goes through the local demo server.
+      // The browser only calls /api; Carvi posts to /webhooks directly on the server, not through Vite.
       '/api': 'http://localhost:4020',
-      '/webhooks': 'http://localhost:4020',
     },
   },
   test: {
