@@ -1,7 +1,11 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useEventSource } from '../lib/sse';
 import type { CarviApiError } from './client';
 import * as api from './requests';
-import type { AvailabilityParams, Booking, BookingInput, BookingsFilter, CancelResult, PaymentInput, Quote, QuoteInput } from './types';
+import type { AvailabilityParams, Booking, BookingInput, BookingsFilter, CancelResult, PaymentInput, Quote, QuoteInput, ReceivedEvent } from './types';
+
+const MAX_EVENTS = 200;
 
 export const useServerConfig = () => useQuery({ queryKey: ['config'], queryFn: api.getServerConfig, staleTime: Infinity });
 export const useHealth = () => useQuery({ queryKey: ['health'], queryFn: api.getHealth, retry: false });
@@ -47,4 +51,25 @@ export function useCancelBooking() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
   });
+}
+
+/** Webhook deliveries received by the demo server: the stored list plus the live SSE stream. */
+export function useReceivedEvents(): { events: ReceivedEvent[]; connected: boolean } {
+  const [events, setEvents] = useState<ReceivedEvent[]>([]);
+  useEffect(() => {
+    // Merge instead of replacing: events already pushed over SSE while this GET was in flight must not be lost.
+    api
+      .listReceivedEvents()
+      .then((stored) => {
+        setEvents((prev) => {
+          const seen = new Set(prev.map((e) => e.id));
+          return [...prev, ...stored.filter((e) => !seen.has(e.id))].slice(0, MAX_EVENTS);
+        });
+      })
+      .catch(() => undefined);
+  }, []);
+  const { connected } = useEventSource<ReceivedEvent>('/api/events/stream', (event) =>
+    setEvents((prev) => (prev.some((e) => e.id === event.id) ? prev : [event, ...prev].slice(0, MAX_EVENTS))),
+  );
+  return { events, connected };
 }

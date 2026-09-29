@@ -16,7 +16,7 @@ export function PricingTable({ pricing }: { pricing: Pricing }) {
         {rows.map(([label, value]) => (
           <tr key={label} className="border-b border-slate-100"><td className="py-1 text-slate-500">{label}</td><td className="py-1 text-right">{value}</td></tr>
         ))}
-        <tr className="font-semibold"><td className="py-2">amountDue · lo que el canal paga a Carvi</td><td className="py-2 text-right text-carvi">{money(pricing.amountDue)} {pricing.currency}</td></tr>
+        <tr className="font-semibold"><td className="py-2">Lo que pagas a Carvi</td><td className="py-2 text-right text-lg text-carvi">{money(pricing.amountDue)} {pricing.currency}</td></tr>
       </tbody>
     </table>
   );

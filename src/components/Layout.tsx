@@ -1,12 +1,12 @@
-import { Activity, Car, CalendarPlus, ListOrdered, Webhook } from 'lucide-react';
+import { Car, CalendarPlus, Home, ListOrdered, Webhook } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { cn } from './ui';
 
 const NAV = [
-  { to: '/', label: 'Estado', icon: Activity, end: true },
-  { to: '/catalogo', label: 'Catálogo', icon: Car },
-  { to: '/reservar', label: 'Reservar', icon: CalendarPlus },
+  { to: '/', label: 'Inicio', icon: Home, end: true },
+  { to: '/vehiculos', label: 'Vehículos', icon: Car },
+  { to: '/reservar', label: 'Nueva reserva', icon: CalendarPlus },
   { to: '/reservas', label: 'Reservas', icon: ListOrdered },
   { to: '/webhooks', label: 'Webhooks', icon: Webhook },
 ];
@@ -17,7 +17,7 @@ export function Layout({ techPanel }: { techPanel?: ReactNode }) {
       <aside className="w-56 shrink-0 border-r border-slate-200 bg-white p-4">
         <div className="mb-6">
           <div className="text-lg font-bold text-carvi">Demo de socio</div>
-          <div className="text-xs text-slate-500">API de integración de Carvi</div>
+          <div className="text-xs text-slate-500">Agencia conectada a Carvi</div>
         </div>
         <nav className="space-y-1">
           {NAV.map(({ to, label, icon: Icon, end }) => (

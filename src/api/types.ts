@@ -41,7 +41,11 @@ export interface Quote { quoteId: string; expiresAt: string; vehicle: { id: stri
 
 export interface Customer { fullName: string; email: string; phone: string; country: string }
 export interface Place { location: string }
-export interface BookingInput { quoteId: string; externalReference?: string; customer: Customer; pickup: Place; dropoff: Place }
+export type MetadataValue = string | number | boolean;
+/** Flat key/value data the channel attaches to a booking; set only on creation. */
+export type Metadata = Record<string, MetadataValue>;
+
+export interface BookingInput { quoteId: string; externalReference?: string; customer: Customer; pickup: Place; dropoff: Place; metadata?: Metadata }
 
 export interface BookingVehicle {
   id: string; brand: string; model: string; year: number; type: string; transmission: string; seats: number; airConditioning: boolean; image?: string; host?: Host;
@@ -64,6 +68,7 @@ export interface Booking {
   hold: { expiresAt: string } | null;
   payment: BookingPayment | null;
   cancellation: BookingCancellation | null;
+  metadata: Metadata | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -76,7 +81,28 @@ export interface BookingsFilter { page: number; limit: number; status?: BookingS
 export interface HealthResponse {
   status: string; time: string; environment: 'sandbox' | 'production'; database: 'up' | 'down'; credential: { clientId: string; scopes: string[] };
 }
-export interface ServerConfig { apiBaseUrl: string; clientId: string; webhookUrl: string; webhookSecretsConfigured: number }
+export interface ServerConfig { apiBaseUrl: string; clientId: string; webhookUrl: string; webhookSecretsConfigured: number; webhookAuthTokenConfigured: boolean }
+
+export type SignatureStatus = 'VALID' | 'INVALID' | 'UNSIGNED' | 'UNVERIFIED';
+export type AuthStatus = 'VALID' | 'INVALID' | 'MISSING' | 'NOT_REQUIRED';
+
+/** A webhook delivery as recorded by the local demo server. */
+export interface ReceivedEvent {
+  id: string;
+  receivedAt: string;
+  type: string;
+  eventId: string;
+  keyId: string;
+  timestamp: string;
+  signatureStatus: SignatureStatus;
+  reason?: 'NO_SECRETS' | 'NO_SIGNATURE' | 'STALE' | 'MISMATCH';
+  authStatus: AuthStatus;
+  /** True when the demo server answered 200. */
+  accepted: boolean;
+  duplicate: boolean;
+  payload: unknown;
+  headers: Record<string, string>;
+}
 export interface ErrorEnvelope { error: { code: string; message: string; details: unknown; requestId: string } }
 
 export const PLACES = [

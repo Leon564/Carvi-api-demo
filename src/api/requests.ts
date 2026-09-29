@@ -1,9 +1,10 @@
 import { carvi, local } from './client';
 import type {
-  AvailabilityParams, AvailabilityResponse, Booking, BookingInput, BookingsFilter, CancelResult, HealthResponse, Paged, PaymentInput, Quote, QuoteInput, ServerConfig, Vehicle,
+  AvailabilityParams, AvailabilityResponse, Booking, BookingInput, BookingsFilter, CancelResult, HealthResponse, Paged, PaymentInput, Quote, QuoteInput, ReceivedEvent, ServerConfig, Vehicle,
 } from './types';
 
 export const getServerConfig = async () => (await local.get<ServerConfig>('/config')).data;
+export const listReceivedEvents = async () => (await local.get<ReceivedEvent[]>('/events')).data;
 export const getHealth = async () => (await carvi.get<HealthResponse>('/health')).data;
 export const listVehicles = async (page: number, limit: number) => (await carvi.get<Paged<Vehicle>>('/vehicles', { params: { page, limit } })).data;
 export const getVehicle = async (id: string) => (await carvi.get<Vehicle>(`/vehicles/${id}`)).data;

@@ -12,7 +12,7 @@ export function VehiclePage() {
   if (vehicle.isPending) return <Spinner />;
   if (vehicle.error) {
     const message = vehicle.error instanceof CarviApiError ? `${vehicle.error.code} · ${vehicle.error.message}` : String(vehicle.error);
-    return <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">{message} · <Link className="underline" to="/catalogo">Volver al catálogo</Link></div>;
+    return <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">{message} · <Link className="underline" to="/vehiculos">Volver a vehículos</Link></div>;
   }
   const v = vehicle.data;
   const specs: Array<[string, string]> = [
@@ -23,7 +23,7 @@ export function VehiclePage() {
     <>
       <PageTitle
         title={`${v.brand} ${v.model} ${v.year}`}
-        subtitle={`GET /vehicles/${v.id}`}
+        subtitle={`${v.host.displayName} · ${money(v.rateDay)} por día`}
         actions={<Button onClick={() => navigate(`/reservar?vehicleId=${v.id}`)}>Reservar este vehículo</Button>}
       />
       <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
@@ -36,6 +36,7 @@ export function VehiclePage() {
           )}
         </Card>
         <Card>
+          <p className="mb-2 text-xs text-slate-400">GET /vehicles/{'{id}'}</p>
           <div className="mb-3 text-2xl font-semibold">{money(v.rateDay)} <span className="text-sm font-normal text-slate-500">por día · {v.currency}</span></div>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
             {specs.map(([label, value]) => <Fragment key={label}><dt className="text-slate-500">{label}</dt><dd>{value}</dd></Fragment>)}
