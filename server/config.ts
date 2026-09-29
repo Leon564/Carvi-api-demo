@@ -5,6 +5,8 @@ export interface ServerConfig {
   clientId: string;
   clientSecret: string;
   webhookSecrets: string[];
+  /** Token Carvi must send as `Authorization: Bearer <token>`; empty = not required. */
+  webhookAuthToken: string;
   port: number;
   publicWebhookUrl: string;
 }
@@ -16,13 +18,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   if (missing.length > 0) throw new Error(`Missing environment variables: ${missing.join(', ')}`);
   const port = Number(env.PORT ?? 4020);
   return {
-    apiBaseUrl: (env.CARVI_API_BASE_URL ?? 'http://localhost:3999/integrations/v1').replace(/\/+$/, ''),
+    apiBaseUrl: (env.CARVI_API_BASE_URL ?? 'http://localhost:3000/integrations/v1').replace(/\/+$/, ''),
     clientId: env.CARVI_CLIENT_ID as string,
     clientSecret: env.CARVI_CLIENT_SECRET as string,
     webhookSecrets: (env.CARVI_WEBHOOK_SECRETS ?? '')
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean),
+    webhookAuthToken: (env.CARVI_WEBHOOK_AUTH_TOKEN ?? '').trim(),
     port,
     publicWebhookUrl: env.PUBLIC_WEBHOOK_URL ?? `http://localhost:${port}/webhooks/carvi`,
   };

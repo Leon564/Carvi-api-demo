@@ -33,13 +33,14 @@ app.get('/api/config', (_req, res) => {
     clientId: config.clientId,
     webhookUrl: config.publicWebhookUrl,
     webhookSecretsConfigured: config.webhookSecrets.length,
+    webhookAuthTokenConfigured: config.webhookAuthToken !== '',
   });
 });
 app.get('/api/log', (_req, res) => res.json(log.list()));
 app.get('/api/log/stream', (_req, res) => exchangeChannel.subscribe(res));
 app.get('/api/events', (_req, res) => res.json(events.list()));
 app.get('/api/events/stream', (_req, res) => eventChannel.subscribe(res));
-app.use('/webhooks', createWebhookRouter(config.webhookSecrets, events));
+app.use('/webhooks', createWebhookRouter(config.webhookSecrets, config.webhookAuthToken, events));
 app.use('/api', express.json(), createProxyRouter(client));
 
 app.listen(config.port, '127.0.0.1', () => {

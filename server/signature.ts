@@ -24,7 +24,8 @@ export function computeSignature(secret: string, timestamp: string, rawBody: str
   return createHmac('sha256', secret).update(`${timestamp}.${rawBody}`).digest('hex');
 }
 
-function safeEqual(a: string, b: string): boolean {
+/** Constant-time string comparison (length mismatch returns false early). */
+export function safeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a, 'utf8');
   const bufB = Buffer.from(b, 'utf8');
   if (bufA.length !== bufB.length) return false;
