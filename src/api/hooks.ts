@@ -20,6 +20,14 @@ export const useAvailability = (params: AvailabilityParams | null) =>
     staleTime: 0,
     retry: false,
   });
+export const useUnavailability = (vehicleId?: string, from?: string, to?: string) =>
+  useQuery({
+    queryKey: ['unavailability', vehicleId, from, to],
+    queryFn: () => api.getUnavailability(vehicleId as string, from, to),
+    enabled: !!vehicleId,
+    staleTime: 0,
+    retry: false,
+  });
 export const useCreateQuote = () => useMutation<Quote, CarviApiError, QuoteInput>({ mutationFn: api.createQuote });
 export const useBookings = (filter: BookingsFilter) =>
   useQuery({ queryKey: ['bookings', filter], queryFn: () => api.listBookings(filter), placeholderData: keepPreviousData });

@@ -2,13 +2,16 @@ import { Fragment } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useVehicle } from '../api/hooks';
 import { CarviApiError } from '../api/client';
+import { UnavailabilityCalendar } from '../components/UnavailabilityCalendar';
 import { Badge, Button, Card, PageTitle, Spinner } from '../components/ui';
+import { useVehicleCalendar } from '../components/useVehicleCalendar';
 import { money } from '../lib/format';
 
 export function VehiclePage() {
   const { id } = useParams<{ id: string }>();
   const vehicle = useVehicle(id);
   const navigate = useNavigate();
+  const { gapHours } = useVehicleCalendar(id);
   if (vehicle.isPending) return <Spinner />;
   if (vehicle.error) {
     const message = vehicle.error instanceof CarviApiError ? `${vehicle.error.code} · ${vehicle.error.message}` : String(vehicle.error);
@@ -44,6 +47,13 @@ export function VehiclePage() {
           <div className="mt-3"><Badge>id: {v.id}</Badge></div>
         </Card>
       </div>
+      <Card className="mt-4">
+        <h2 className="text-lg font-semibold">Disponibilidad de los próximos meses</h2>
+        {gapHours !== undefined && (
+          <p className="mt-1 text-sm text-slate-500">Los días marcados ya incluyen el margen de {gapHours} h entre rentas.</p>
+        )}
+        <UnavailabilityCalendar vehicleId={v.id} className="mt-3" />
+      </Card>
     </>
   );
 }

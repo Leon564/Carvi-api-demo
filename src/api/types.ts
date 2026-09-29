@@ -31,6 +31,14 @@ export interface AvailabilityResponse {
   meta: { from: string; to: string; startTime: string; endTime: string; timezone: string; gapHours: number };
 }
 
+export type UnavailabilityReason = 'BOOKED' | 'BLOCKED';
+/** A span when the vehicle cannot be rented; `from`/`to` are inclusive local days (BOOKED already includes the gap). */
+export interface UnavailabilityItem { from: string; to: string; startsAt: string; endsAt: string; reason: UnavailabilityReason }
+export interface UnavailabilityResponse {
+  data: UnavailabilityItem[];
+  meta: { vehicleId: string; from: string; to: string; timezone: string; gapHours: number };
+}
+
 export interface Period { from: string; to: string; startTime: string; endTime: string; timezone?: string }
 export interface Pricing {
   rateDay: number; totalDays: number; totalHours: number; subtotal: number; advance: number; serviceFee: number; amountDue: number; total: number; currency: string;

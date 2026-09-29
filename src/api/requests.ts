@@ -1,6 +1,6 @@
 import { carvi, local } from './client';
 import type {
-  AvailabilityParams, AvailabilityResponse, Booking, BookingInput, BookingsFilter, CancelResult, HealthResponse, Paged, PaymentInput, Quote, QuoteInput, ReceivedEvent, ServerConfig, Vehicle,
+  AvailabilityParams, AvailabilityResponse, Booking, BookingInput, BookingsFilter, CancelResult, HealthResponse, Paged, PaymentInput, Quote, QuoteInput, ReceivedEvent, ServerConfig, UnavailabilityResponse, Vehicle,
 } from './types';
 
 export const getServerConfig = async () => (await local.get<ServerConfig>('/config')).data;
@@ -10,6 +10,10 @@ export const listVehicles = async (page: number, limit: number) => (await carvi.
 export const getVehicle = async (id: string) => (await carvi.get<Vehicle>(`/vehicles/${id}`)).data;
 export const getAvailability = async (params: AvailabilityParams) =>
   (await carvi.get<AvailabilityResponse>('/availability', { params: { ...params, vehicleIds: params.vehicleIds.join(',') } })).data;
+export const getUnavailability = async (vehicleId: string, from?: string, to?: string) => {
+  const params = { ...(from ? { from } : {}), ...(to ? { to } : {}) };
+  return (await carvi.get<UnavailabilityResponse>(`/vehicles/${vehicleId}/unavailability`, { params })).data;
+};
 export const createQuote = async (input: QuoteInput) => (await carvi.post<Quote>('/quotes', input)).data;
 export const createBooking = async (input: BookingInput, idempotencyKey: string) =>
   (await carvi.post<Booking>('/bookings', input, { headers: { 'Idempotency-Key': idempotencyKey } })).data;

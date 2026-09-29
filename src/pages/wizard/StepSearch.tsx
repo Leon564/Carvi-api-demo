@@ -7,6 +7,7 @@ import { VehicleCard } from '../../components/VehicleCard';
 import { Badge, Button, Card, EmptyState, Field, Input, Spinner } from '../../components/ui';
 import { calendarDaysInclusive, MIN_RENT_DAYS, type PeriodInput } from '../../lib/dates';
 import { notifyError } from '../../lib/notify';
+import { CalendarModal } from './CalendarModal';
 
 interface Props {
   period: PeriodInput;
@@ -29,6 +30,7 @@ export function StepSearch({ period, preselectedId, onSearch, onQuoted }: Props)
   const vehicles = useVehicles(page);
   const preselected = useVehicle(preselectedId);
   const quote = useCreateQuote();
+  const [calendarFor, setCalendarFor] = useState<Vehicle | null>(null);
 
   const list = useMemo(() => {
     const pageVehicles = vehicles.data?.data ?? [];
@@ -49,6 +51,10 @@ export function StepSearch({ period, preselectedId, onSearch, onQuoted }: Props)
   const days = draft.from && draft.to ? calendarDaysInclusive(draft.from, draft.to) : 0;
   const complete = !!(draft.from && draft.to && draft.startTime && draft.endTime);
   const pendingSearch = !samePeriod(draft, period);
+  const search = (next: PeriodInput) => {
+    quote.reset();
+    onSearch(next);
+  };
   const set = (key: keyof PeriodInput) => (e: ChangeEvent<HTMLInputElement>) => setDraft({ ...draft, [key]: e.target.value });
 
   const choose = (vehicle: Vehicle) => {
@@ -64,10 +70,7 @@ export function StepSearch({ period, preselectedId, onSearch, onQuoted }: Props)
           className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto_auto]"
           onSubmit={(e) => {
             e.preventDefault();
-            if (complete) {
-              quote.reset();
-              onSearch(draft);
-            }
+            if (complete) search(draft);
           }}
         >
           <Field label="Recogida"><Input type="date" value={draft.from} onChange={set('from')} /></Field>
@@ -98,7 +101,7 @@ export function StepSearch({ period, preselectedId, onSearch, onQuoted }: Props)
                   key={vehicle.id}
                   vehicle={vehicle}
                   selected={marked}
-                  className={row && !available ? 'opacity-60' : undefined}
+                  className={row && !available ? 'opacity-60 transition-opacity hover:opacity-100' : undefined}
                   footer={
                     <div className="mt-2 space-y-2">
                       <div className="flex flex-wrap items-center gap-1">
@@ -107,10 +110,22 @@ export function StepSearch({ period, preselectedId, onSearch, onQuoted }: Props)
                         {row && available && <Badge tone="green">Disponible</Badge>}
                         {row && !available && <span className="text-xs text-slate-500">{row.reason ? reasonLabel[row.reason] : 'No disponible'}</span>}
                       </div>
-                      {row && available && (
-                        <Button className="w-full justify-center" onClick={() => choose(vehicle)} disabled={quote.isPending}>
-                          {quotingId === vehicle.id ? 'Cotizando…' : 'Elegir'}
-                        </Button>
+                      {row?.reason === 'BOOKED' ? (
+                        <div className="space-y-1">
+                          <Button className="w-full justify-center" onClick={() => setCalendarFor(vehicle)}>Ver calendario</Button>
+                          <p className="text-center text-xs text-slate-500">Busca en su calendario unas fechas libres.</p>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          {row && available && (
+                            <Button className="flex-1 justify-center" onClick={() => choose(vehicle)} disabled={quote.isPending}>
+                              {quotingId === vehicle.id ? 'Cotizando…' : 'Elegir'}
+                            </Button>
+                          )}
+                          <Button variant="secondary" className={row && available ? undefined : 'flex-1 justify-center'} onClick={() => setCalendarFor(vehicle)}>
+                            Ver calendario
+                          </Button>
+                        </div>
                       )}
                       {failedId === vehicle.id && quote.error && (
                         <ApiErrorBox
@@ -126,6 +141,20 @@ export function StepSearch({ period, preselectedId, onSearch, onQuoted }: Props)
           </div>
           <Pagination meta={vehicles.data.meta} onPage={setPage} />
         </>
+      )}
+      {calendarFor && (
+        <CalendarModal
+          key={calendarFor.id}
+          vehicle={calendarFor}
+          period={draft}
+          onClose={() => setCalendarFor(null)}
+          onUse={(range) => {
+            const next = { ...draft, ...range };
+            setDraft(next);
+            search(next);
+            setCalendarFor(null);
+          }}
+        />
       )}
     </div>
   );

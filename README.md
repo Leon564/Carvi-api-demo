@@ -69,7 +69,12 @@ en la deduplicación por `eventId`, así el reintento de Carvi no se marca como 
 
 1. **Inicio**: comprueba la conexión (entorno, credencial, scopes) y cómo está configurado el
    webhook (firma y token). Abre el panel técnico y mira el `POST /auth/token`.
-2. **Vehículos**: catálogo publicado; «Reservar» lleva al asistente con el vehículo elegido.
+2. **Vehículos**: catálogo publicado; «Reservar» lleva al asistente con el vehículo elegido. La
+   ficha muestra el calendario de los próximos meses (`GET /vehicles/{id}/unavailability`): días
+   reservados (con el margen entre rentas ya aplicado) y bloqueados por el anfitrión. En el paso 1
+   de «Nueva reserva», «Ver calendario» abre ese mismo calendario para elegir un rango libre y
+   «Usar estas fechas» repite la búsqueda con él; es la salida natural cuando un vehículo aparece
+   como «Ya reservado en esas fechas».
 3. **Nueva reserva**: fechas y vehículo disponible → datos del cliente y «Datos adicionales»
    (la `metadata` que Carvi guarda y devuelve tal cual) → «Reservar y pagar» (hold + pago simulado
    del canal) o «Solo reservar» (hold de 15 minutos).

@@ -60,11 +60,11 @@ export function JsonBlock({ value, className }: { value: unknown; className?: st
   return <pre className={cn('max-h-96 overflow-auto rounded-md bg-slate-900 p-3 text-xs text-slate-100', className)}>{JSON.stringify(value, null, 2)}</pre>;
 }
 
-export function Modal({ open, title, onClose, children }: { open: boolean; title: string; onClose: () => void; children: ReactNode }) {
+export function Modal({ open, title, onClose, children, className }: { open: boolean; title: string; onClose: () => void; children: ReactNode; className?: string }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div className={cn('max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-white p-5 shadow-xl', className)} onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">{title}</h2>
           <button className="text-slate-500 hover:text-slate-800" onClick={onClose} aria-label="Cerrar">✕</button>
