@@ -16,9 +16,9 @@ describe('summarizeWebhook', () => {
       status: 'CANCELLED',
       booking: {},
       reason: 'CUSTOMER_REQUEST',
-      refund: { responsibility: 'PARTNER', refundableAmount: 42.5, currency: 'USD' },
+      refund: { responsibility: 'PARTNER', refundableAmount: 42.5, currency: 'USD', settlement: 'NONE' },
     });
-    expect(summarizeWebhook('booking.cancelled', payload)).toBe('CV-ABC123 · Cancelada · motivo: a petición de tu cliente · reembolsas tú $42.50 USD');
+    expect(summarizeWebhook('booking.cancelled', payload)).toBe('CV-ABC123 · Cancelada · motivo: a petición de tu cliente · reembolsas a tu cliente $42.50 USD · lo asumes tú · sin efecto en tu liquidación');
   });
 
   it('marks Carvi as responsible when the host cancelled', () => {
@@ -26,9 +26,9 @@ describe('summarizeWebhook', () => {
       confirmationCode: 'CV-XYZ999',
       status: 'CANCELLED',
       reason: 'HOST_CANCELLED',
-      refund: { responsibility: 'CARVI', refundableAmount: 100, currency: 'USD' },
+      refund: { responsibility: 'CARVI', refundableAmount: 100, currency: 'USD', settlement: 'DEDUCTED_FROM_SETTLEMENT' },
     });
-    expect(summarizeWebhook('booking.cancelled', payload)).toBe('CV-XYZ999 · Cancelada · motivo: la canceló el anfitrión · reembolsa Carvi $100.00 USD');
+    expect(summarizeWebhook('booking.cancelled', payload)).toBe('CV-XYZ999 · Cancelada · motivo: la canceló el anfitrión · reembolsas a tu cliente $100.00 USD · lo asume Carvi · se descuenta de tu liquidación');
   });
 
   it('keeps unknown codes readable', () => {

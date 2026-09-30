@@ -8,9 +8,15 @@ const CANCEL_REASON_LABELS: Record<string, string> = {
   NOT_DELIVERED: 'el vehículo no se entregó',
 };
 
+// The partner always refunds its own customer; these say who absorbs the amount.
 const REFUND_RESPONSIBILITY_LABELS: Record<string, string> = {
-  PARTNER: 'reembolsas tú',
-  CARVI: 'reembolsa Carvi',
+  PARTNER: 'lo asumes tú',
+  CARVI: 'lo asume Carvi',
+};
+
+const REFUND_SETTLEMENT_LABELS: Record<string, string> = {
+  DEDUCTED_FROM_SETTLEMENT: 'se descuenta de tu liquidación',
+  NONE: 'sin efecto en tu liquidación',
 };
 
 const SETTLEMENT_STATUS_LABELS: Record<string, string> = {
@@ -49,10 +55,12 @@ function bookingSummary(type: string, data: Record<string, unknown>): string {
     if (reason) parts.push(`motivo: ${reason}`);
     const refund = isPlainObject(data.refund) ? data.refund : null;
     if (refund) {
-      const who = label(REFUND_RESPONSIBILITY_LABELS, str(refund.responsibility));
       const amount = num(refund.refundableAmount);
-      const text = [who, amount !== null ? `${money(amount)} ${str(refund.currency) ?? 'USD'}` : null].filter(Boolean).join(' ');
-      if (text) parts.push(text);
+      if (amount !== null) parts.push(`reembolsas a tu cliente ${money(amount)} ${str(refund.currency) ?? 'USD'}`);
+      const who = label(REFUND_RESPONSIBILITY_LABELS, str(refund.responsibility));
+      if (who) parts.push(who);
+      const settlement = label(REFUND_SETTLEMENT_LABELS, str(refund.settlement));
+      if (settlement) parts.push(settlement);
     }
   }
   return parts.join(' · ');
