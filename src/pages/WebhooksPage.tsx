@@ -7,6 +7,7 @@ import { Badge, Card, EmptyState, JsonBlock, PageTitle, Select, Spinner, cn } fr
 import { AuthBadge, DuplicateBadge, SignatureBadge } from '../components/webhooks/EventBadges';
 import { fmtDateTime } from '../lib/dates';
 import { isPlainObject } from '../lib/metadata';
+import { summarizeWebhook } from '../lib/webhookSummary';
 
 const EVENT_TYPES = ['booking.confirmed', 'booking.cancelled', 'booking.expired', 'booking.started', 'booking.completed', 'vehicle.unpublished', 'settlement.status_changed'];
 
@@ -20,6 +21,7 @@ function bookingMetadata(payload: unknown): Record<string, unknown> | null {
 function EventRow({ event }: { event: ReceivedEvent }) {
   const [expanded, setExpanded] = useState(false);
   const metadata = bookingMetadata(event.payload);
+  const summary = summarizeWebhook(event.type, event.payload);
   return (
     <Card className={cn('p-0', !event.accepted && 'border-red-200')}>
       <button className="flex w-full flex-wrap items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50" onClick={() => setExpanded((v) => !v)}>
@@ -31,6 +33,7 @@ function EventRow({ event }: { event: ReceivedEvent }) {
         <AuthBadge status={event.authStatus} />
         <SignatureBadge event={event} />
       </button>
+      {summary && <div className="px-3 pb-2 pl-8 text-sm text-slate-700">{summary}</div>}
       {expanded && (
         <div className="space-y-3 border-t border-slate-100 p-3 text-xs">
           {metadata && (

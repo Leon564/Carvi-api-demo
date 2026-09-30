@@ -1,7 +1,9 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState, type Dispatch } from 'react';
 import { toast } from 'sonner';
 import { CarviApiError } from '../../api/client';
 import { useConfirmBooking, useCreateBooking } from '../../api/hooks';
+import { getBooking } from '../../api/requests';
 import type { Booking, PaymentInput } from '../../api/types';
 import { newExternalPaymentId } from '../../lib/idempotency';
 import { buildBookingInput, type WizardAction, type WizardState } from './wizardState';
@@ -16,8 +18,20 @@ const asApiError = (err: unknown): CarviApiError =>
 export function useBookingFlow(state: WizardState, dispatch: Dispatch<WizardAction>) {
   const createBooking = useCreateBooking();
   const confirmBooking = useConfirmBooking();
+  const queryClient = useQueryClient();
   const [phase, setPhase] = useState<FlowPhase>('idle');
   const [error, setError] = useState<FlowError | null>(null);
+
+  // After a failed confirm the booking may have moved on (expired, cancelled, even paid): show what Carvi has now.
+  const refreshBooking = async (id: string): Promise<void> => {
+    try {
+      const fresh = await queryClient.fetchQuery({ queryKey: ['booking', id], queryFn: () => getBooking(id), staleTime: 0 });
+      dispatch({ type: 'BOOKING_UPDATED', booking: fresh });
+      void queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    } catch {
+      // Keep the last known booking; the payment error is already on screen.
+    }
+  };
 
   const pay = async (booking: Booking): Promise<void> => {
     // The same body with the same key: a retry after a network error is replayed, never charged twice.
@@ -31,6 +45,7 @@ export function useBookingFlow(state: WizardState, dispatch: Dispatch<WizardActi
       toast.success(`Reserva ${confirmed.confirmationCode} confirmada`);
     } catch (err) {
       setError({ stage: 'pay', error: asApiError(err) });
+      await refreshBooking(booking.id);
     } finally {
       setPhase('idle');
     }

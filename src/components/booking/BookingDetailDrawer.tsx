@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { useBooking } from '../../api/hooks';
+import { canStillPay } from '../../lib/guidance';
 import { newIdempotencyKey } from '../../lib/idempotency';
 import { ApiErrorBox } from '../ApiErrorBox';
 import { MetadataTable } from '../MetadataTable';
@@ -37,7 +38,8 @@ export function BookingDetailDrawer({ id, onClose }: { id: string; onClose: () =
               <MetadataTable metadata={data.metadata} />
             </section>
             <div className="flex flex-wrap gap-2">
-              {data.status === 'HOLD' && <Button onClick={() => { setConfirmKey(newIdempotencyKey()); setConfirmOpen(true); }}>Confirmar pago</Button>}
+              {canStillPay(data) && <Button onClick={() => { setConfirmKey(newIdempotencyKey()); setConfirmOpen(true); }}>Confirmar pago</Button>}
+              {data.status === 'HOLD' && !canStillPay(data) && <span className="self-center text-xs text-slate-500">La reserva en espera venció: ya no admite el pago.</span>}
               {(data.status === 'HOLD' || data.status === 'CONFIRMED') && (
                 <Button variant="danger" onClick={() => { setCancelKey(newIdempotencyKey()); setCancelOpen(true); }}>Cancelar</Button>
               )}

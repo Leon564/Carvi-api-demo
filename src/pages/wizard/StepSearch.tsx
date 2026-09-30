@@ -6,8 +6,15 @@ import { Pagination } from '../../components/Pagination';
 import { VehicleCard } from '../../components/VehicleCard';
 import { Badge, Button, Card, EmptyState, Field, Input, Spinner } from '../../components/ui';
 import { calendarDaysInclusive, MIN_RENT_DAYS, type PeriodInput } from '../../lib/dates';
+import { isPlainObject } from '../../lib/metadata';
 import { notifyError } from '../../lib/notify';
 import { CalendarModal } from './CalendarModal';
+
+/** Only the minimum-duration rejection carries `details.minDays`; other validation errors get no date hint. */
+function minDaysHint(details: unknown): string | undefined {
+  if (!isPlainObject(details) || typeof details.minDays !== 'number') return undefined;
+  return `Ajusta las fechas: la renta debe durar al menos ${details.minDays} días de calendario.`;
+}
 
 interface Props {
   period: PeriodInput;
@@ -130,7 +137,7 @@ export function StepSearch({ period, preselectedId, onSearch, onQuoted }: Props)
                       {failedId === vehicle.id && quote.error && (
                         <ApiErrorBox
                           error={quote.error}
-                          hint={quote.error.code === 'VALIDATION_ERROR' ? `Ajusta las fechas: la renta debe durar al menos ${MIN_RENT_DAYS} días de calendario.` : undefined}
+                          hint={minDaysHint(quote.error.details)}
                         />
                       )}
                     </div>

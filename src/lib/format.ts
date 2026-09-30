@@ -13,3 +13,17 @@ export const STATUS_LABELS: Record<BookingStatus, string> = {
   COMPLETED: 'Completada',
   CANCELLED: 'Cancelada',
 };
+
+/** `payment.status` of a booking: settlement states for partner bookings, Payment states otherwise. */
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  PENDING_SETTLEMENT: 'Pendiente de liquidar',
+  SETTLED: 'Liquidada',
+  PENDING: 'Pendiente',
+  SUCCEEDED: 'Cobrado',
+  PAID: 'Pagado',
+  FAILED: 'Fallido',
+  REFUNDED: 'Reembolsado',
+  CANCELED: 'Anulado',
+};
+
+export const paymentStatusLabel = (status: string): string => PAYMENT_STATUS_LABELS[status] ?? status;

@@ -7,7 +7,7 @@ import { Pagination } from '../components/Pagination';
 import { StatusBadge } from '../components/StatusBadge';
 import { Badge, Button, EmptyState, Field, Input, PageTitle, Select, Spinner } from '../components/ui';
 import { fmtDate, fmtDateTime } from '../lib/dates';
-import { money, STATUS_LABELS } from '../lib/format';
+import { money, paymentStatusLabel, STATUS_LABELS } from '../lib/format';
 import { notifyError } from '../lib/notify';
 
 export function BookingsPage() {
@@ -55,7 +55,7 @@ export function BookingsPage() {
                   <td>{b.customer.fullName}</td>
                   <td>{fmtDate(b.period.from)} → {fmtDate(b.period.to)}</td>
                   <td className="text-right">{money(b.pricing.amountDue)}</td>
-                  <td>{b.payment ? <Badge tone="blue">{b.payment.status}</Badge> : <span className="text-slate-400">—</span>}</td>
+                  <td>{b.payment ? <Badge tone="blue">{paymentStatusLabel(b.payment.status)}</Badge> : <span className="text-slate-400">—</span>}</td>
                   <td className="text-slate-500">{fmtDateTime(b.createdAt)}</td>
                 </tr>
               ))}

@@ -1,7 +1,7 @@
 import type { Booking } from '../../api/types';
 import { placeLabel } from '../../api/types';
 import { fmtDate, fmtDateTime } from '../../lib/dates';
-import { money } from '../../lib/format';
+import { money, paymentStatusLabel } from '../../lib/format';
 import { StatusBadge } from '../StatusBadge';
 import { Badge } from '../ui';
 
@@ -24,7 +24,7 @@ export function BookingSummary({ booking, showHeader = true }: { booking: Bookin
         <dt className="text-slate-500">Lo que pagas a Carvi</dt><dd className="font-semibold text-carvi">{money(booking.pricing.amountDue)} {booking.pricing.currency}</dd>
         {booking.hold && booking.status === 'HOLD' && <><dt className="text-slate-500">En espera hasta</dt><dd>{fmtDateTime(booking.hold.expiresAt)}</dd></>}
         {booking.payment && (
-          <><dt className="text-slate-500">Pago registrado</dt><dd>{booking.payment.externalPaymentId} · {money(booking.payment.amount)} · <Badge tone="blue">{booking.payment.status}</Badge></dd></>
+          <><dt className="text-slate-500">Pago registrado</dt><dd>{booking.payment.externalPaymentId} · {money(booking.payment.amount)} · <Badge tone="blue">{paymentStatusLabel(booking.payment.status)}</Badge></dd></>
         )}
         {booking.cancellation && (
           <><dt className="text-slate-500">Cancelación</dt><dd>{booking.cancellation.reason ?? 'sin motivo'} · reembolsable {money(booking.cancellation.refundableAmount)}{booking.cancellation.at && ` · ${fmtDateTime(booking.cancellation.at)}`}</dd></>

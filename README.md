@@ -83,6 +83,15 @@ en la deduplicación por `eventId`, así el reintento de Carvi no se marca como 
    backend, prueba con `node scripts/send-test-webhook.mjs --unsigned` (o `--secret <s>` y
    `--token <t>`).
 
+Cada webhook que llega refresca la pantalla sin tocar nada: se recargan la lista de «Reservas», el
+detalle abierto y el último paso de «Nueva reserva» (la reserva a la que apunta `data.bookingId`),
+y aparece un aviso «Webhook recibido: booking.confirmed · CV-XXXXXX». En «Webhooks», cada evento
+muestra una línea legible sobre el JSON: código y estado de la reserva (con motivo y quién
+reembolsa, y cuánto, en `booking.cancelled`), el vehículo despublicado o el nuevo estado de la
+liquidación. Si el pago llega pasados los 2 minutos de cortesía del hold, Carvi responde
+`HOLD_EXPIRED` y es definitivo: la demo recarga la reserva, deja de ofrecer «Confirmar pago» y
+propone «Nueva reserva» (tras cualquier error al confirmar se vuelve a leer la reserva).
+
 ## Verificación
 
 ```bash
@@ -91,4 +100,5 @@ npm run lint && npm run typecheck && npm run build && npm test
 
 Las pruebas (vitest) cubren la lógica pura del servidor (evaluación de firma y token de cada
 entrega, caché del token, configuración, proxy y registro de intercambios) y del front (regla de
-días de calendario, conversión de los datos adicionales a `metadata`, estado del asistente).
+días de calendario, conversión de los datos adicionales a `metadata`, estado del asistente,
+resumen legible de cada webhook).

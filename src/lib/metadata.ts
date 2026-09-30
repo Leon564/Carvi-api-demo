@@ -8,20 +8,40 @@ export interface MetadataRow {
 export const METADATA_MAX_KEYS = 50;
 export const METADATA_MAX_VALUE_LENGTH = 500;
 export const METADATA_KEY_PATTERN = /^[A-Za-z0-9_.-]{1,40}$/;
+/** Serialized size limit Carvi enforces on the whole `metadata` object (8 KB). */
+export const METADATA_MAX_BYTES = 8192;
 const NUMBER_PATTERN = /^-?\d+(\.\d+)?$/;
+// Beyond 15 significant digits a double no longer round-trips, so the value would change.
+const MAX_NUMBER_DIGITS = 15;
 
 export interface MetadataResult {
   /** Only present when there is at least one row and no row has an error. */
   metadata?: Metadata;
   /** Error message per row, keyed by the index of the row in the input. */
   errors: Record<number, string>;
+  /** Error about the object as a whole (serialized size). */
+  totalError?: string;
 }
 
-/** Typed value for a form cell: `true`/`false` become booleans, plain decimals become numbers. */
+/** UTF-8 byte length of the JSON Carvi receives, as the backend measures it. */
+export const metadataBytes = (metadata: Metadata): number => new TextEncoder().encode(JSON.stringify(metadata)).length;
+
+/** True for plain decimals that survive `Number()` unchanged: no leading zeros (IDs, zip codes) and at most 15 digits. */
+function isSafeNumber(value: string): boolean {
+  if (!NUMBER_PATTERN.test(value)) return false;
+  const unsigned = value.replace(/^-/, '');
+  if (/^0\d/.test(unsigned)) return false;
+  return unsigned.replace('.', '').length <= MAX_NUMBER_DIGITS;
+}
+
+/**
+ * Typed value for a form cell: `true`/`false` become booleans, plain decimals become numbers.
+ * Leading zeros or more than 15 digits keep the value as text so it is not altered.
+ */
 export function parseMetadataValue(value: string): MetadataValue {
   if (value === 'true') return true;
   if (value === 'false') return false;
-  if (NUMBER_PATTERN.test(value)) return Number(value);
+  if (isSafeNumber(value)) return Number(value);
   return value;
 }
 
@@ -60,6 +80,10 @@ export function rowsToMetadata(rows: MetadataRow[]): MetadataResult {
     metadata[key] = parseMetadataValue(value);
   });
   if (Object.keys(errors).length > 0 || Object.keys(metadata).length === 0) return { errors };
+  const bytes = metadataBytes(metadata);
+  if (bytes > METADATA_MAX_BYTES) {
+    return { errors, totalError: `Los datos adicionales ocupan ${(bytes / 1024).toFixed(1)} KB y Carvi admite como máximo 8 KB. Acorta o quita algún dato.` };
+  }
   return { metadata, errors };
 }
 

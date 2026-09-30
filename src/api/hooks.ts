@@ -1,6 +1,8 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { useEventSource } from '../lib/sse';
+import { webhookBookingId, webhookConfirmationCode } from '../lib/webhookSummary';
 import type { CarviApiError } from './client';
 import * as api from './requests';
 import type { AvailabilityParams, Booking, BookingInput, BookingsFilter, CancelResult, PaymentInput, Quote, QuoteInput, ReceivedEvent } from './types';
@@ -48,6 +50,11 @@ export function useConfirmBooking() {
       queryClient.setQueryData(['booking', booking.id], booking);
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
+    // A rejected confirm (HOLD_EXPIRED, state conflict…) means our copy may be stale: reload it.
+    onError: (_err, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    },
   });
 }
 export function useCancelBooking() {
@@ -80,4 +87,19 @@ export function useReceivedEvents(): { events: ReceivedEvent[]; connected: boole
     setEvents((prev) => (prev.some((e) => e.id === event.id) ? prev : [event, ...prev].slice(0, MAX_EVENTS))),
   );
   return { events, connected };
+}
+
+/**
+ * Keeps the screens in sync with Carvi: every webhook the demo server receives reloads the bookings
+ * list and the booking it refers to (`data.bookingId`), so open pages and drawers update on their own.
+ */
+export function useWebhookLiveRefresh(): void {
+  const queryClient = useQueryClient();
+  useEventSource<ReceivedEvent>('/api/events/stream', (event) => {
+    const bookingId = webhookBookingId(event.payload);
+    queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    if (bookingId) queryClient.invalidateQueries({ queryKey: ['booking', bookingId] });
+    const code = webhookConfirmationCode(event.payload);
+    toast.info(`Webhook recibido: ${event.type}${code ? ` · ${code}` : ''}`);
+  });
 }

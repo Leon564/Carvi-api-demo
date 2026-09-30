@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isPlainObject, rowsToMetadata } from './metadata';
+import { isPlainObject, metadataBytes, rowsToMetadata } from './metadata';
 
 describe('rowsToMetadata', () => {
   it('returns no metadata when every row is empty', () => {
@@ -25,6 +25,34 @@ describe('rowsToMetadata', () => {
 
   it('keeps strings that only look like numbers or booleans', () => {
     expect(rowsToMetadata([{ key: 'a', value: 'True' }, { key: 'b', value: '1e3' }, { key: 'c', value: '.5' }]).metadata).toEqual({ a: 'True', b: '1e3', c: '.5' });
+  });
+
+  it('keeps leading-zero and long digit strings as text', () => {
+    expect(rowsToMetadata([
+      { key: 'zip', value: '01101' },
+      { key: 'neg', value: '-007' },
+      { key: 'dec', value: '00.5' },
+      { key: 'card', value: '1234567890123456' },
+      { key: 'max', value: '123456789012345' },
+      { key: 'frac', value: '1234567890.123456' },
+      { key: 'zero', value: '0' },
+      { key: 'half', value: '0.5' },
+    ]).metadata).toEqual({ zip: '01101', neg: '-007', dec: '00.5', card: '1234567890123456', max: 123456789012345, frac: '1234567890.123456', zero: 0, half: 0.5 });
+  });
+
+  it('rejects metadata above 8 KB once serialized', () => {
+    const rows = Array.from({ length: 17 }, (_, i) => ({ key: `k${i}`, value: 'x'.repeat(480) }));
+    const result = rowsToMetadata(rows);
+    expect(result.metadata).toBeUndefined();
+    expect(result.errors).toEqual({});
+    expect(result.totalError).toMatch(/8 KB/);
+    const fits = rowsToMetadata(rows.slice(0, 16));
+    expect(metadataBytes(fits.metadata ?? {})).toBeLessThanOrEqual(8192);
+    expect(fits.totalError).toBeUndefined();
+  });
+
+  it('measures the size in UTF-8 bytes', () => {
+    expect(metadataBytes({ a: 'ñ' })).toBe(JSON.stringify({ a: 'ñ' }).length + 1);
   });
 
   it('flags a value without a key, keyed by the original row index', () => {

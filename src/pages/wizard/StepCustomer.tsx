@@ -21,8 +21,9 @@ const schema = z
     metadata: z.array(z.object({ key: z.string(), value: z.string() })),
   })
   .superRefine((values, ctx) => {
-    const { errors } = rowsToMetadata(values.metadata);
+    const { errors, totalError } = rowsToMetadata(values.metadata);
     for (const [index, message] of Object.entries(errors)) ctx.addIssue({ code: 'custom', path: ['metadata', Number(index)], message });
+    if (totalError) ctx.addIssue({ code: 'custom', path: ['metadata'], message: totalError });
   });
 
 const COUNTRIES = ['SV', 'GT', 'HN', 'NI', 'CR', 'PA', 'MX', 'US'];
@@ -59,6 +60,8 @@ export function StepCustomer({ vehicle, period, quote, customer, onBack, onRenew
   const form = useForm<CustomerForm>({ resolver: zodResolver(schema), defaultValues: customer ?? demoCustomerDefaults() });
   const rows = useFieldArray({ control: form.control, name: 'metadata' });
   const errors = form.formState.errors;
+  // The resolver may nest an array-level issue under `root` when the array is a field array.
+  const metadataTotalError = errors.metadata?.root?.message ?? errors.metadata?.message;
   const submit = form.handleSubmit((values) => onNext(values));
   return (
     <div className="grid items-start gap-4 lg:grid-cols-[3fr_2fr]">
@@ -100,6 +103,7 @@ export function StepCustomer({ vehicle, period, quote, customer, onBack, onRenew
                 </div>
               ))}
             </div>
+            {metadataTotalError && <p className="mt-2 text-xs text-red-600">{metadataTotalError}</p>}
             <Button type="button" variant="secondary" className="mt-2" disabled={rows.fields.length >= METADATA_MAX_KEYS} onClick={() => rows.append({ key: '', value: '' })}>
               <Plus size={14} /> Añadir dato
             </Button>

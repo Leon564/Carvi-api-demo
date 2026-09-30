@@ -1,6 +1,7 @@
 import { Car, CalendarPlus, Home, ListOrdered, Webhook } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { useWebhookLiveRefresh } from '../api/hooks';
 import { cn } from './ui';
 
 const NAV = [
@@ -12,6 +13,7 @@ const NAV = [
 ];
 
 export function Layout({ techPanel }: { techPanel?: ReactNode }) {
+  useWebhookLiveRefresh();
   return (
     <div className="flex min-h-screen">
       <aside className="w-56 shrink-0 border-r border-slate-200 bg-white p-4">

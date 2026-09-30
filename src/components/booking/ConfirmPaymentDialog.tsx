@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useConfirmBooking } from '../../api/hooks';
 import type { Booking } from '../../api/types';
 import { money } from '../../lib/format';
+import { isTerminalPayError } from '../../lib/guidance';
 import { newExternalPaymentId } from '../../lib/idempotency';
 import { ApiErrorBox } from '../ApiErrorBox';
 import { Button, Field, Input, Modal } from '../ui';
@@ -57,7 +58,7 @@ export function ConfirmPaymentDialog({ booking, idempotencyKey, open, onClose, o
       <p className="mt-3 text-xs text-slate-400">POST /bookings/{'{id}'}/confirm</p>
       <div className="mt-4 flex justify-end gap-2">
         <Button variant="secondary" onClick={onClose}>Cerrar</Button>
-        <Button onClick={submit} disabled={confirm.isPending || !externalPaymentId.trim()}>{confirm.isPending ? 'Confirmando…' : 'Confirmar pago'}</Button>
+        <Button onClick={submit} disabled={confirm.isPending || !externalPaymentId.trim() || isTerminalPayError(confirm.error?.code)}>{confirm.isPending ? 'Confirmando…' : 'Confirmar pago'}</Button>
       </div>
     </Modal>
   );

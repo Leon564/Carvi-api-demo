@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
-import { useReducer } from 'react';
+import { useEffect, useReducer } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useBooking } from '../../api/hooks';
 import { PageTitle, cn } from '../../components/ui';
 import { BookingDone } from './BookingDone';
 import { StepConfirm } from './StepConfirm';
@@ -17,6 +18,15 @@ export function BookingWizardPage() {
   const preselectedId = state.vehicle?.id ?? params.get('vehicleId') ?? undefined;
   const current = stepIndex(state.step);
   const canGoBack = !state.booking && flow.phase === 'idle';
+
+  // On the last step the booking is read from the query cache too, so a webhook (which
+  // invalidates it) or a change made elsewhere shows up here without reloading.
+  const live = useBooking(state.step === 'done' ? state.booking?.id : undefined).data;
+  useEffect(() => {
+    if (!live || !state.booking || live.id !== state.booking.id || live.updatedAt === state.booking.updatedAt) return;
+    if (new Date(live.updatedAt).getTime() < new Date(state.booking.updatedAt).getTime()) return;
+    dispatch({ type: 'BOOKING_UPDATED', booking: live });
+  }, [live, state.booking]);
 
   const requote = () => {
     flow.clearError();
