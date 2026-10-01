@@ -43,6 +43,6 @@ app.get('/api/events/stream', (_req, res) => eventChannel.subscribe(res));
 app.use('/webhooks', createWebhookRouter(config.webhookSecrets, config.webhookAuthToken, events));
 app.use('/api', express.json(), createProxyRouter(client));
 
-app.listen(config.port, '127.0.0.1', () => {
-  console.log(`[demo-socio] server on http://127.0.0.1:${config.port} → ${config.apiBaseUrl}`);
+app.listen(config.port, config.host, () => {
+  console.log(`[demo-socio] server on http://${config.host}:${config.port} → ${config.apiBaseUrl}`);
 });

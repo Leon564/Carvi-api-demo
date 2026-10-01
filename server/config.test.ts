@@ -13,9 +13,14 @@ describe('loadConfig', () => {
       clientSecret: 'sec',
       webhookSecrets: ['a', 'b'],
       webhookAuthToken: '',
+      host: '127.0.0.1',
       port: 4020,
       publicWebhookUrl: 'http://localhost:4020/webhooks/carvi',
     });
+  });
+  it('binds to HOST when set and falls back to loopback when blank', () => {
+    expect(loadConfig({ CARVI_CLIENT_ID: 'id', CARVI_CLIENT_SECRET: 'sec', HOST: '0.0.0.0' }).host).toBe('0.0.0.0');
+    expect(loadConfig({ CARVI_CLIENT_ID: 'id', CARVI_CLIENT_SECRET: 'sec', HOST: ' ' }).host).toBe('127.0.0.1');
   });
   it('reads and trims the webhook auth token', () => {
     const cfg = loadConfig({ CARVI_CLIENT_ID: 'id', CARVI_CLIENT_SECRET: 'sec', CARVI_WEBHOOK_AUTH_TOKEN: '  tok-123 ' });

@@ -44,6 +44,7 @@ No es producto: todo el estado del servidor vive en memoria y se pierde al reini
 | `CARVI_CLIENT_SECRET` | `client_secret` de la credencial | obligatoria |
 | `CARVI_WEBHOOK_SECRETS` | Secretos de webhook separados por coma (dos durante una rotación) | vacío: la credencial no tiene secreto, las entregas llegan «sin firma» |
 | `CARVI_WEBHOOK_AUTH_TOKEN` | El `webhookAuthToken` configurado en la credencial; si se define, el demo exige `Authorization: Bearer` | vacío: no se exige |
+| `HOST` | Interfaz en la que escucha el servidor; en un hosting (Render, etc.) debe ser `0.0.0.0` | `127.0.0.1` |
 | `PORT` | Puerto del servidor local | `4020` |
 | `PUBLIC_WEBHOOK_URL` | URL pública a configurar como `webhookUrl` | `http://localhost:4020/webhooks/carvi` |
 
