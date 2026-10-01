@@ -13,10 +13,15 @@ describe('loadConfig', () => {
       clientSecret: 'sec',
       webhookSecrets: ['a', 'b'],
       webhookAuthToken: '',
+      accessPassword: '',
       host: '127.0.0.1',
       port: 4020,
       publicWebhookUrl: 'http://localhost:4020/webhooks/carvi',
     });
+  });
+  it('reads and trims the access password', () => {
+    const cfg = loadConfig({ CARVI_CLIENT_ID: 'id', CARVI_CLIENT_SECRET: 'sec', DEMO_PASSWORD: ' s3cret ' });
+    expect(cfg.accessPassword).toBe('s3cret');
   });
   it('binds to HOST when set and falls back to loopback when blank', () => {
     expect(loadConfig({ CARVI_CLIENT_ID: 'id', CARVI_CLIENT_SECRET: 'sec', HOST: '0.0.0.0' }).host).toBe('0.0.0.0');

@@ -7,6 +7,8 @@ export interface ServerConfig {
   webhookSecrets: string[];
   /** Token Carvi must send as `Authorization: Bearer <token>`; empty = not required. */
   webhookAuthToken: string;
+  /** Password (HTTP Basic) that opens the demo to non-local requests; empty = local-only. */
+  accessPassword: string;
   /** Interface to bind; hosting platforms need `0.0.0.0` to route traffic to the server. */
   host: string;
   port: number;
@@ -28,6 +30,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       .map((s) => s.trim())
       .filter(Boolean),
     webhookAuthToken: (env.CARVI_WEBHOOK_AUTH_TOKEN ?? '').trim(),
+    accessPassword: (env.DEMO_PASSWORD ?? '').trim(),
     host: (env.HOST ?? '').trim() || '127.0.0.1',
     port,
     publicWebhookUrl: env.PUBLIC_WEBHOOK_URL ?? `http://localhost:${port}/webhooks/carvi`,

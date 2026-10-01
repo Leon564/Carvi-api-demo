@@ -44,14 +44,32 @@ No es producto: todo el estado del servidor vive en memoria y se pierde al reini
 | `CARVI_CLIENT_SECRET` | `client_secret` de la credencial | obligatoria |
 | `CARVI_WEBHOOK_SECRETS` | Secretos de webhook separados por coma (dos durante una rotación) | vacío: la credencial no tiene secreto, las entregas llegan «sin firma» |
 | `CARVI_WEBHOOK_AUTH_TOKEN` | El `webhookAuthToken` configurado en la credencial; si se define, el demo exige `Authorization: Bearer` | vacío: no se exige |
+| `DEMO_PASSWORD` | Contraseña (HTTP Basic, cualquier usuario) que permite usar el demo desde fuera de `localhost` | vacío: solo peticiones locales |
 | `HOST` | Interfaz en la que escucha el servidor; en un hosting (Render, etc.) debe ser `0.0.0.0` | `127.0.0.1` |
 | `PORT` | Puerto del servidor local | `4020` |
 | `PUBLIC_WEBHOOK_URL` | URL pública a configurar como `webhookUrl` | `http://localhost:4020/webhooks/carvi` |
 
 Contra un backend desplegado, Carvi no puede llegar a `localhost`: publica el puerto 4020 con un
 túnel (por ejemplo `ngrok http 4020`) y pon esa URL en `PUBLIC_WEBHOOK_URL` y en el portal.
-El túnel solo debe usarse para `/webhooks/carvi`: el resto de rutas del servidor del demo rechazan
-peticiones cuyo `Host` no sea `localhost`.
+El túnel solo debe usarse para `/webhooks/carvi`: sin `DEMO_PASSWORD`, el resto de rutas del
+servidor del demo rechazan peticiones cuyo `Host` no sea `localhost`.
+
+## Despliegue en un solo servicio
+
+El servidor también sirve el front compilado (`dist/`), así que basta un único servicio web
+(por ejemplo, un Web Service de Render):
+
+```bash
+npm install && npm run build && npm run build:server   # build
+npm run start:server                                   # arranque
+```
+
+Además de la credencial, define `HOST=0.0.0.0`, `CARVI_API_BASE_URL`, `PUBLIC_WEBHOOK_URL`
+(`https://<servicio>/webhooks/carvi`, la misma URL que el `webhookUrl` de la credencial) y
+`DEMO_PASSWORD`. Sin contraseña el servidor sigue siendo solo local y responde 403; con ella, el
+navegador la pide una vez (el usuario puede ser cualquiera) y protege el front y `/api`, que actúa
+con la credencial del socio. `/webhooks/carvi` queda fuera: Carvi se autentica con la firma y el
+token. El estado sigue en memoria: se pierde cada vez que el servicio se reinicia.
 
 ## Cómo trata el demo cada entrega de webhook
 
